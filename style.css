@@ -42,8 +42,9 @@ ul { list-style: none; }
 .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center; /* Centering for mobile width */
     gap: 10px;
-    padding: 14px 32px;
+    padding: 12px 30px;
     border-radius: 50px;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -62,58 +63,6 @@ ul { list-style: none; }
     box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); 
     background: transparent;
     color: var(--primary-blue);
-}
-
-.btn-light {
-    background: white;
-    color: var(--primary-blue);
-}
-.btn-light:hover { background: #e0e7ff; }
-
-.btn-outline {
-    border: 2px solid var(--primary-blue);
-    color: var(--primary-blue);
-    background: transparent;
-}
-.btn-outline:hover {
-    background: var(--primary-blue);
-    color: white;
-}
-.btn-outline-white {
-    border: 2px solid white;
-    color: white;
-    background: transparent;
-}
-.btn-outline-white:hover {
-    background: white;
-    color: var(--primary-blue);
-}
-
-/* --- "Discover More" Button Specific Style --- */
-.btn-discover {
-    background: var(--primary-blue);
-    color: white;
-    padding: 12px 12px 12px 30px;
-    border-radius: 50px;
-    display: inline-flex;
-    align-items: center;
-    gap: 15px;
-    font-weight: 600;
-    transition: 0.3s;
-}
-.btn-discover .icon-circle {
-    width: 35px;
-    height: 35px;
-    background: white;
-    color: var(--primary-blue);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-.btn-discover:hover .icon-circle {
-    transform: rotate(45deg);
 }
 
 /* --- Navbar & Dropdown --- */
@@ -161,6 +110,12 @@ ul { list-style: none; }
 }
 .nav-links a:hover, .nav-links a.active { color: var(--primary-blue); }
 
+/* --- DESKTOP SPECIFIC: Hide Mobile Login --- */
+/* This prevents the login button inside the list from showing on Desktop */
+.nav-links .mobile-login {
+    display: none;
+}
+
 /* Dropdown Menu Styles (Desktop) */
 .dropdown-menu {
     position: absolute;
@@ -181,15 +136,16 @@ ul { list-style: none; }
     z-index: 1100;
 }
 
-/* Hover state for desktop */
-.nav-links li:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+/* Hover state for desktop only (disabled in media query) */
+@media screen and (min-width: 1025px) {
+    .nav-links li:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
 }
 
 .dropdown-menu li { padding: 0; }
-
 .dropdown-menu a {
     padding: 12px 25px;
     color: var(--text-dark);
@@ -197,11 +153,10 @@ ul { list-style: none; }
     transition: 0.2s;
     border-radius: 0;
 }
-
 .dropdown-menu a:hover {
     color: var(--primary-blue);
     background: #f8fafc;
-    padding-left: 30px; /* Slide effect */
+    padding-left: 30px;
 }
 
 /* Arrow rotation */
@@ -210,8 +165,108 @@ ul { list-style: none; }
 
 .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--primary-dark); }
 
-/* --- Page Layout --- */
-main { flex: 1; margin-top: 80px; } 
+/* --- RESPONSIVE MEDIA QUERIES --- */
+/* Target 1024px (iPad Pro/Mini/Tablet) */
+@media screen and (max-width: 1024px) {
+    
+    .menu-toggle {
+        display: block;
+        z-index: 1001;
+    }
+
+    /* 1. Navbar Container Layout */
+    .nav-links {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        padding: 20px 0;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-top: 1px solid #f1f5f9;
+        gap: 0;
+        align-items: flex-start; /* Align left */
+    }
+
+    /* Shown when JS adds this class */
+    .nav-links.nav-active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+        padding: 0;
+    }
+
+    .nav-links a {
+        padding: 15px 25px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* 2. BUTTON LOGIC: Hide Desktop, Show Mobile */
+    
+    /* Reveal the mobile login button inside the list */
+    .nav-links .mobile-login {
+        display: block;
+        padding: 15px 25px;
+    }
+    
+    /* Style the button inside the mobile menu */
+    .nav-links .mobile-login .btn {
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    /* Hide the standalone button outside the list */
+    .nav-container > .btn-primary {
+        display: none;
+    }
+
+    /* 3. Mobile Dropdown Logic */
+    .dropdown-menu {
+        position: relative; /* Stack normally */
+        top: 0;
+        box-shadow: none;
+        background: #f8fafc;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        display: none; /* Hidden until clicked */
+        width: 100%;
+    }
+
+    .dropdown.active .dropdown-menu {
+        display: flex;
+    }
+
+    .dropdown-menu a {
+        padding-left: 45px; /* Indent sub-links */
+    }
+
+    /* Rotate arrow on click active class */
+    .dropdown.active > a i {
+        transform: rotate(180deg);
+    }
+}
+/* Update the existing .logo class */
+.logo {
+    display: flex;
+    align-items: center;
+    /* Removed font-size/weight as they don't apply to the image */
+}
+
+/* Add this new rule to control the image size */
+.logo img {
+    height: 45px; /* Adjust this value to fit your navbar height */
+    width: auto;  /* Maintains the aspect ratio */
+    object-fit: contain;
+}
+
+
 
 /* --- Section Headers --- */
 .section-header { margin-bottom: 60px; }
@@ -244,6 +299,71 @@ main { flex: 1; margin-top: 80px; }
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.2), transparent 40%);
+}
+
+
+
+/* --- CTA Section Background --- */
+.cta-section {
+    background: linear-gradient(135deg, var(--primary-blue, #2563eb), var(--primary-dark, #0f172a));
+    padding: 80px 0;
+    text-align: center;
+    color: white;
+}
+
+.cta-content h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.cta-content p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- Base Button Style (If not already defined) --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 35px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* --- Specific "Outline White" Button --- */
+.btn-outline-white {
+    background: transparent;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+}
+
+/* Hover Effect */
+.btn-outline-white:hover {
+    background: #ffffff;
+    color: var(--primary-blue, #2563eb); /* Text turns blue on hover */
+    transform: translateY(-5px); /* Moves up slightly */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Icon Animation on Hover */
+.btn-outline-white:hover i {
+    transform: translateX(5px); /* Arrow moves right */
+}
+
+/* Icon Default State */
+.btn-outline-white i {
+    transition: transform 0.3s ease;
 }
 
 /* --- Hero Section (Home 1) --- */
