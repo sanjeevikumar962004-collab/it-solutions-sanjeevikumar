@@ -250,3 +250,186 @@ if (canvas) {
     function connect() { for (let a = 0; a < particlesArray.length; a++) { for (let b = a; b < particlesArray.length; b++) { let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y)); if (distance < (canvas.width/7) * (canvas.height/7) && distance < 20000) { let opacityValue = 1 - (distance / 20000); ctx.strokeStyle = 'rgba(37, 99, 235,' + opacityValue + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke(); } } } }
     resizeCanvas(); animate();
 }
+
+
+
+// --- 1. Custom Cursor Logic ---
+const cursorDot = document.querySelector('.cursor-dot');
+const cursorCircle = document.querySelector('.cursor-circle');
+
+// Move cursor
+document.addEventListener('mousemove', (e) => {
+    // Check if elements exist (mobile might hide them)
+    if(cursorDot && cursorCircle) {
+        cursorDot.style.left = e.clientX + 'px';
+        cursorDot.style.top = e.clientY + 'px';
+        
+        // Add a slight delay to the circle for a fluid feel
+        setTimeout(() => {
+            cursorCircle.style.left = e.clientX + 'px';
+            cursorCircle.style.top = e.clientY + 'px';
+        }, 50);
+    }
+});
+
+// Hover effects for links and buttons
+const hoverables = document.querySelectorAll('a, button, .acc-item, h2');
+
+hoverables.forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+
+// --- 2. Accordion Logic ---
+const accItems = document.querySelectorAll('.acc-item');
+
+accItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+        // Remove active class from all
+        accItems.forEach(i => i.classList.remove('active'));
+        // Add to hovered
+        item.classList.add('active');
+    });
+});
+
+
+// --- 3. Number Counter Logic (Simple) ---
+const stats = document.querySelectorAll('.big-num');
+let hasCounted = false;
+
+window.addEventListener('scroll', () => {
+    const section = document.querySelector('.stats-lux');
+    if(!section) return;
+    
+    if(window.scrollY + window.innerHeight > section.offsetTop && !hasCounted) {
+        stats.forEach(stat => {
+            const target = +stat.getAttribute('data-val');
+            let count = 0;
+            const inc = target / 100;
+            
+            const update = () => {
+                count += inc;
+                if(count < target) {
+                    stat.innerText = Math.ceil(count);
+                    requestAnimationFrame(update);
+                } else {
+                    stat.innerText = target;
+                }
+            };
+            update();
+        });
+        hasCounted = true;
+    }
+});
+// --- Parallax Image Logic ---
+const parallaxImages = document.querySelectorAll('.parallax-img');
+
+window.addEventListener('scroll', () => {
+    parallaxImages.forEach(img => {
+        const speed = 0.15;
+        // Calculate distance from top of viewport
+        const rect = img.getBoundingClientRect();
+        // Only animate if in view
+        if(rect.top < window.innerHeight && rect.bottom > 0) {
+            const yPos = (window.innerHeight - rect.top) * speed;
+            img.style.transform = `translateY(${yPos - 50}px)`; 
+            // -50 ensures it starts slightly up and moves down
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    // ... (Your previous code) ...
+
+    // --- PROCESS SECTION LOGIC ---
+    const cards = document.querySelectorAll('.process-card');
+    const circle = document.querySelector('.progress-ring__circle');
+    const progressText = document.querySelector('.progress-text');
+    
+    // Circle Props
+    if(circle) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            progressText.innerText = `${Math.round(percent)}%`;
+        }
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -20% 0px', // Adjusted margin for better timing
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    
+                    // Logic to update percentage
+                    const currentStep = parseInt(entry.target.getAttribute('data-step'));
+                    const totalSteps = cards.length;
+                    
+                    // Calculate percentage (Step 1 = 25%, Step 4 = 100%)
+                    const progress = (currentStep / totalSteps) * 100;
+                    
+                    setProgress(progress);
+                }
+            });
+        }, observerOptions);
+
+        cards.forEach(card => {
+            observer.observe(card);
+        });
+    }
+});
+
+/* --- Spotlight Grid Logic --- */
+const gridContainer = document.getElementById('spotlight-grid');
+const spotlightCards = document.querySelectorAll('.spotlight-card');
+
+if (gridContainer) {
+    gridContainer.onmousemove = e => {
+        for(const card of spotlightCards) {
+            // Get card's position relative to the viewport
+            const rect = card.getBoundingClientRect();
+            
+            // Calculate mouse position relative to the card
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Update CSS variables
+            card.style.setProperty("--mouse-x", `${x}px`);
+            card.style.setProperty("--mouse-y", `${y}px`);
+        }
+    };
+}
+
+
+/* --- Simple Scroll Reveal --- */
+document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.holo-core-section, .neural-process-section, .cyber-grid-section');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => {
+        // Set initial state via JS so it gracefully degrades if JS fails
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(30px)';
+        section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        observer.observe(section);
+    });
+});
