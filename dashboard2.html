@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TechNova</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Your existing styles (Header) -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* DARK THEME VARIABLES */
+            --primary-accent: #2563eb; 
+            --bg-body: #0f172a;       
+            --bg-card: #1e293b;       
+            --bg-hover: #334155;      
+            
+            --text-main: #f8fafc;     
+            --text-light: #94a3b8;    
+            
+            --border-color: #334155;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            
+            /* Status Colors */
+            --success-bg: rgba(34, 197, 94, 0.2);
+            --success-text: #4ade80;
+            --warning-bg: rgba(234, 179, 8, 0.2);
+            --warning-text: #facc15;
+            --danger-bg: rgba(239, 68, 68, 0.2);
+            --danger-text: #f87171;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- DASHBOARD SPECIFIC STYLES --- */
+        .dashboard-wrapper {
+            display: block;
+            padding-top: 20px; 
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Main Content - Centered and Full Width */
+        .main-content {
+            width: 100%;
+            max-width: 1280px; /* Limits width on very large screens for readability */
+            margin: 0 auto;    /* Centers the content */
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-accent);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-hover);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-accent);
+            font-size: 1.25rem;
+        }
+
+        /* Content Grids */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        /* Progress Bars */
+        .progress-item { margin-bottom: 1rem; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-light); }
+        .progress-bg { height: 8px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary-accent); border-radius: 4px; }
+
+        /* Inputs */
+        .dark-select { background: var(--bg-hover); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; color: var(--text-light); outline: none; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .dashboard-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .dashboard-table th { text-align: left; padding: 12px; font-size: 0.85rem; color: var(--text-light); border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .dashboard-table td { padding: 16px 12px; font-size: 0.9rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); }
+
+        /* Badges */
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .status-completed { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-bg); }
+        .status-pending { background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-bg); }
+        .status-active { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.2); }
+        .status-danger { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-bg); }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr; /* Stack grid items */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr; } /* Stack stats */
+            .main-content { padding: 1rem; }
+            .card { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- YOUR HEADER (Original Code) -->
+    <nav class="navbar">
+        <div class="container nav-container">
+             <a href="index.html" class="logo">
+            <img src="stackly.png" alt="TechNova" class="logo-img">
+        </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="service.html">Services</a></li>
+                <li><a href="project.html">Projects</a></li>
+                <li><a href="about.html" >About</a></li>
+                <li><a href="dashboard2.html" class="active">Dashboard</a></li>
+                <li><a href="contact2.html">Contact</a></li>
+              <li class="mobile-login"><a href="login.html" class="btn btn-primary">Login</a></li>
+        </ul>
+
+        <a href="login.html" class="btn btn-primary desktop-login">Login</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD CONTENT -->
+    <div class="dashboard-wrapper" style="margin-top: 80px;">
+        
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Welcome back, Admin!</h1>
+                <p class="page-subtitle">System status is stable. No critical alerts.</p>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>1,245</h3>
+                        <p>Total Projects</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>$48.2k</h3>
+                        <p>Total Revenue</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>384</h3>
+                        <p>Active Clients</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>98%</h3>
+                        <p>Satisfaction</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 1: Line Chart & System Health -->
+            <div class="content-grid">
+                
+                <!-- Main Line Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Performance Overview</h3>
+                        <select class="dark-select">
+                            <option>Last 6 Months</option>
+                            <option>Last Year</option>
+                        </select>
+                    </div>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- System Resources -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">System Health</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>CPU Usage</span>
+                                <span>58%</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-fill" style="width: 58%;"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Memory</span>
+                                <span>34%</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-fill" style="width: 34%; background-color: #4ade80;"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Disk Space</span>
+                                <span>82%</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-fill" style="width: 82%; background-color: #facc15;"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                 <span style="font-size: 0.85rem; color: var(--text-light);">Server Status</span>
+                                 <span class="status-badge status-completed">Online</span>
+                             </div>
+                             <div style="display: flex; justify-content: space-between; align-items: center;">
+                                 <span style="font-size: 0.85rem; color: var(--text-light);">Database</span>
+                                 <span class="status-badge status-completed">Healthy</span>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Projects & Pie Chart -->
+            <div class="content-grid">
+
+                <!-- Recent Projects Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Projects</h3>
+                        <a href="./404.html" style="color: var(--primary-accent); font-size: 0.9rem; font-weight: 600; text-decoration: none;">View All</a>
+                    </div>
+                    <div class="table-container">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Client</th>
+                                    <th>Deadline</th>
+                                    <th>Status</th>
+                                    <th>Budget</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 600;">Website Redesign</td>
+                                    <td>TechFlow Inc.</td>
+                                    <td>Oct 24, 2024</td>
+                                    <td><span class="status-badge status-active">In Progress</span></td>
+                                    <td>$4,500</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Mobile App Dev</td>
+                                    <td>SmartRetail</td>
+                                    <td>Nov 12, 2024</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
+                                    <td>$12,000</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Cloud Migration</td>
+                                    <td>DataSecure</td>
+                                    <td>Sep 30, 2024</td>
+                                    <td><span class="status-badge status-completed">Completed</span></td>
+                                    <td>$8,200</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Cyber Audit</td>
+                                    <td>BankCorp</td>
+                                    <td>Dec 05, 2024</td>
+                                    <td><span class="status-badge status-danger">Delayed</span></td>
+                                    <td>$15,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Revenue Distribution (Pie Chart) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Revenue Distribution</h3>
+                        <select class="dark-select">
+                            <option>This Month</option>
+                            <option>Last Quarter</option>
+                        </select>
+                    </div>
+                    <div style="height: 300px; width: 100%; display: flex; justify-content: center; align-items: center; position: relative;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Pending Tickets (Full Width) -->
+            <div class="content-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h3 class="card-title">Pending Tickets</h3>
+                        <span style="font-size: 0.8rem; background: var(--bg-hover); padding: 2px 8px; rounded: 4px; border-radius: 4px;">4 New</span>
+                    </div>
+                    <ul style="display: flex; flex-direction: column; gap: 1rem; list-style: none;">
+                        <li style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; background: #f87171; border-radius: 50%; margin-top: 6px; flex-shrink: 0;"></div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 2px;">Login Failure</p>
+                                    <span style="font-size: 0.7rem; color: #64748b;">10m ago</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-light);">User ID #892 cannot access dashboard.</p>
+                            </div>
+                        </li>
+                        <li style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; background: #facc15; border-radius: 50%; margin-top: 6px; flex-shrink: 0;"></div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 2px;">API Latency</p>
+                                    <span style="font-size: 0.7rem; color: #64748b;">1h ago</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-light);">High response time on /v1/users endpoint.</p>
+                            </div>
+                        </li>
+                        <li style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; background: #2563eb; border-radius: 50%; margin-top: 6px; flex-shrink: 0;"></div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 2px;">Feature Request</p>
+                                    <span style="font-size: 0.7rem; color: #64748b;">3h ago</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-light);">Client requesting dark mode toggle.</p>
+                            </div>
+                        </li>
+                        <li style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; margin-top: 6px; flex-shrink: 0;"></div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 2px;">Billing Update</p>
+                                    <span style="font-size: 0.7rem; color: #64748b;">Yesterday</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-light);">Invoice #4402 generated successfully.</p>
+                            </div>
+                        </li>
+                    </ul>
+                   
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Common Chart Defaults
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#334155';
+
+        // 1. Line Chart (Performance)
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000],
+                    borderColor: '#2563eb', 
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1e293b', 
+                    pointBorderColor: '#2563eb',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 4], color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // 2. Pie Chart (Revenue Distribution)
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Product Sales', 'Consulting', 'SaaS Services', 'Investments'],
+                datasets: [{
+                    label: 'Revenue Sources',
+                    data: [45, 25, 20, 10], 
+                    backgroundColor: [
+                        '#2563eb', // Blue
+                        '#4ade80', // Green
+                        '#facc15', // Yellow
+                        '#f87171'  // Red
+                    ],
+                    borderColor: '#1e293b',
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { 
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            color: '#94a3b8',
+                            font: {
+                                family: "'Plus Jakarta Sans', sans-serif",
+                                size: 12
+                            },
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+     <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="logo">
+            <img src="stackly.png" alt="TechNova" class="logo-img">
+        </a>
+                    <p>Empowering businesses with innovative technology solutions.</p>
+                     <div class="social-links">
+                    <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="./index2.html">Home</a></li>
+                        <li><a href="about2.html">About Us</a></li>
+                        <li><a href="services2.html">Our Services</a></li>
+                        <li><a href="dashboard2.html">Dashboard</a></li>
+                        <li><a href="project2.html">Projects</a></li>
+                        <li><a href="contact2.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="services2.html">Web Development</a></li>
+                        <li><a href="services2.html">App Development</a></li>
+                        <li><a href="services2.html">UI/UX Design</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Tech Street, USA</li>
+                        <li><i class="fas fa-envelope"></i> hello@Stackly.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 TechNova Solutions. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

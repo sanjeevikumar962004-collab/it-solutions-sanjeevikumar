@@ -3027,4 +3027,69 @@ footer { background: var(--primary-dark); color: white; padding: 80px 0 30px; po
 .form-group, .input-group { position: relative; }
 
 
+/* Banner Container */
+.page-header-banner {
+    background-color: #1e293b; /* Matches your --bg-card variable */
+    background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 4rem 0; /* Approx 64px top/bottom */
+    margin-top: 70px; /* Adjust this to match your Navbar height */
+    border-bottom: 1px solid #334155; /* Matches --border-color */
+    text-align: center;
+    position: relative;
+}
+
+/* Optional: Add a subtle blue glow effect */
+.page-header-banner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Container alignment (if not already in your css) */
+.page-header-banner .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Typography */
+.page-header-banner h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #f8fafc; /* Matches --text-main */
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.page-header-banner p {
+    font-size: 1.125rem;
+    color: #94a3b8; /* Matches --text-light */
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-header-banner {
+        padding: 3rem 0;
+        text-align: left; /* Often looks better left-aligned on mobile */
+    }
+    
+    .page-header-banner h1 {
+        font-size: 2rem;
+    }
+    
+    .page-header-banner p {
+        margin: 0;
+    }
+}
 
